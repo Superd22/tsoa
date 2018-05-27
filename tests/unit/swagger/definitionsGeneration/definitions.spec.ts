@@ -68,6 +68,14 @@ describe('Definition generation', () => {
       const definition = getValidatedDefinition('TestModel');
       expect(definition.required).to.not.contain('optionalString');
     });
+
+    it.only('should correctly compute extend', () => {
+      const definition = getValidatedDefinition('UserDisplay');
+      expect(definition.required).to.not.contain('password');
+      expect(definition.required).to.contain('avatar');
+      expect(definition.required).to.contain('name');
+      expect(definition.required).to.contain('groups');
+    });
   });
 
   describe('Class-based generation', () => {
@@ -246,4 +254,5 @@ describe('Definition generation', () => {
       expect((property.items as Swagger.Schema).type).to.equal('string');
     });
   });
+
 });

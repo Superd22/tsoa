@@ -13,6 +13,7 @@ import {
   TestClassModel,
   TestModel,
   TestSubModel,
+  UserDisplay,
 } from '../testModel';
 import {
   ModelService,
@@ -173,6 +174,11 @@ export class GetTestController extends Controller {
     return {
       result: new ModelService().getModel().stringArray,
     };
+  }
+
+  @Get('OmitExtend')
+  public async getOmitExtended(): Promise<UserDisplay> {
+    return new ModelService().getOmitModel();
   }
 }
 

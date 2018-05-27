@@ -1,4 +1,4 @@
-import { TestClassModel, TestModel, TestSubModel } from '../testModel';
+import { TestClassModel, TestModel, TestSubModel, UserDisplay } from '../testModel';
 
 export class ModelService {
   public getModel(): TestModel {
@@ -31,5 +31,14 @@ export class ModelService {
     testClassModel.publicStringProperty = 'public string property';
 
     return testClassModel;
+  }
+
+  public getOmitModel(): UserDisplay {
+    return {
+      avatar: 'test',
+      displayColor: 'test',
+      groups: [1, 2, 3],
+      name: 'test',
+    };
   }
 }

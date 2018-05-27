@@ -25,7 +25,8 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
   if (primitiveType) {
     return primitiveType;
   }
-
+  // tslint:disable-next-line:no-console
+  // console.log((typeNode as any).typeName ? (typeNode as any).typeName.text : null, typeNode.kind === ts.SyntaxKind.TypeAliasDeclaration);
   if (typeNode.kind === ts.SyntaxKind.ArrayType) {
     return {
       dataType: 'array',
@@ -100,10 +101,14 @@ export function resolveType(typeNode: ts.TypeNode, parentNode?: ts.Node, extract
   if (literalType) { return literalType; }
 
   let referenceType: Tsoa.ReferenceType;
+  // tslint:disable-next-line:no-console
+  // console.log('type args', typeReference.typeArguments);
   if (typeReference.typeArguments && typeReference.typeArguments.length === 1) {
     const typeT: ts.NodeArray<ts.TypeNode> = typeReference.typeArguments as ts.NodeArray<ts.TypeNode>;
+    // tslint:disable-next-line:no-console
     referenceType = getReferenceType(typeReference.typeName as ts.EntityName, extractEnum, typeT);
   } else {
+    // tslint:disable-next-line:no-console
     referenceType = getReferenceType(typeReference.typeName as ts.EntityName, extractEnum);
   }
 
@@ -278,10 +283,12 @@ function getLiteralType(typeName: ts.EntityName): Tsoa.EnumerateType | undefined
   } as Tsoa.EnumerateType;
 }
 
-function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>): Tsoa.ReferenceType {
+function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?: ts.NodeArray<ts.TypeNode>, log = false): Tsoa.ReferenceType {
   const typeName = resolveFqTypeName(type);
   const refNameWithGenerics = getTypeName(typeName, genericTypes);
 
+  // tslint:disable-next-line:no-console
+  if (genericTypes) { console.log('ohlala', typeName, refNameWithGenerics, genericTypes); }
   try {
     const existingType = localReferenceTypeCache[refNameWithGenerics];
     if (existingType) {
@@ -303,8 +310,10 @@ function getReferenceType(type: ts.EntityName, extractEnum = true, genericTypes?
     const modelType = getModelTypeDeclaration(type);
     const properties = getModelProperties(modelType, genericTypes);
     const additionalProperties = getModelAdditionalProperties(modelType);
-    const inheritedProperties = getModelInheritedProperties(modelType) || [];
+    const inheritedProperties = getModelInheritedProperties(modelType, genericTypes) || [];
 
+    // tslint:disable-next-line:no-console
+    if (genericTypes) { console.log('inherit', modelType.name, properties, inheritedProperties); }
     const referenceType = {
       additionalProperties,
       dataType: 'refObject',
@@ -353,7 +362,15 @@ function getAnyTypeName(typeNode: ts.TypeNode): string {
     return 'object';
   }
 
+  if (typeNode.kind === ts.SyntaxKind.LastTypeNode) {
+    // tslint:disable-next-line:no-console
+    console.log((typeNode as ts.LiteralTypeNode).getText());
+    return ((typeNode as ts.LiteralTypeNode).getText());
+  }
+
   if (typeNode.kind !== ts.SyntaxKind.TypeReference) {
+    // tslint:disable-next-line:no-console
+    console.log(typeNode);
     throw new GenerateMetadataError(`Unknown type: ${ts.SyntaxKind[typeNode.kind]}.`);
   }
 
@@ -653,7 +670,9 @@ function getModelAdditionalProperties(node: UsableDeclaration) {
   return undefined;
 }
 
-function getModelInheritedProperties(modelTypeDeclaration: UsableDeclaration): Tsoa.Property[] {
+function getModelInheritedProperties(modelTypeDeclaration: UsableDeclaration, typeReference: ts.NodeArray<ts.TypeNode> | undefined): Tsoa.Property[] {
+  // tslint:disable-next-line:no-console
+  // console.log('inhereited', modelTypeDeclaration);
   const properties = [] as Tsoa.Property[];
   if (modelTypeDeclaration.kind === ts.SyntaxKind.TypeAliasDeclaration) {
     return [];
@@ -665,10 +684,14 @@ function getModelInheritedProperties(modelTypeDeclaration: UsableDeclaration): T
 
   heritageClauses.forEach((clause) => {
     if (!clause.types) { return; }
-
+    // tslint:disable-next-line:no-console
+    console.log('i\'m der');
     clause.types.forEach((t) => {
       const baseEntityName = t.expression as ts.EntityName;
-      const referenceType = getReferenceType(baseEntityName);
+      const referenceType = getReferenceType(baseEntityName, true, t.typeArguments, true);
+
+      // tslint:disable-next-line:no-console
+      console.log(`entity name:  ${baseEntityName}`, referenceType);
       if (referenceType.properties) {
         referenceType.properties.forEach((property) => properties.push(property));
       }

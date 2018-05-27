@@ -229,8 +229,8 @@ export class ValidateModel {
  * Gender msg
  */
 export enum Gender {
-   MALE = 'MALE' as any,
-   FEMALE = 'FEMALE' as any,
+  MALE = 'MALE' as any,
+  FEMALE = 'FEMALE' as any,
 }
 
 export interface ErrorResponseModel {
@@ -304,4 +304,19 @@ export interface GenericModel<T> {
 export interface GenericRequest<T> {
   name: string;
   value: T;
+}
+
+export type StringLiteralDiff<T extends string, U extends string> = ({ [P in T]: P } & { [P in U]: never } & { [x: string]: never })[T];
+
+export type Omit<T, K extends keyof T> = Pick<T, StringLiteralDiff<keyof T, K>>;
+
+export class User {
+  public name: string;
+  public avatar: string;
+  public password: string;
+  public groups: number[];
+}
+
+export interface UserDisplay extends Omit<User, 'password'> {
+  displayColor: string;
 }
